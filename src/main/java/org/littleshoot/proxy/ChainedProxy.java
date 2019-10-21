@@ -6,7 +6,7 @@ import java.net.InetSocketAddress;
 
 /**
  * <p>
- * Encapsulates information needed to connect to a chained proxy.
+ * Encapsulates(封装) information needed to connect to a chained proxy.
  * </p>
  * 
  * <p>

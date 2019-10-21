@@ -322,6 +322,7 @@ public class ProxyToServerConnection extends ProxyConnection<HttpResponse> {
 
         if (is(DISCONNECTED) && msg instanceof HttpRequest) {
             LOG.debug("Currently disconnected, connect and then write the message");
+            //未连接，开始一个新的连接，并初始化connectionFlow
             connectAndWrite((HttpRequest) msg);
         } else {
             if (isConnecting()) {
@@ -540,6 +541,7 @@ public class ProxyToServerConnection extends ProxyConnection<HttpResponse> {
      * handling CONNECTs.
      */
     private void initializeConnectionFlow() {
+        LOG.info("初始化ConnectionFlow");
         this.connectionFlow = new ConnectionFlow(clientConnection, this,
                 connectLock)
                 .then(ConnectChannel);
@@ -598,8 +600,9 @@ public class ProxyToServerConnection extends ProxyConnection<HttpResponse> {
 
         @Override
         protected Future<?> execute() {
+            //此处执行proxy到server的连接操作
             Bootstrap cb = new Bootstrap().group(proxyServer.getProxyToServerWorkerFor(transportProtocol));
-
+            LOG.info("begin to connect");
             switch (transportProtocol) {
             case TCP:
                 LOG.debug("Connecting to server with TCP");
@@ -868,7 +871,7 @@ public class ProxyToServerConnection extends ProxyConnection<HttpResponse> {
      */
     private void initChannelPipeline(ChannelPipeline pipeline,
             HttpRequest httpRequest) {
-
+        LOG.info("初始化ProxyToServerConnection pipeline");
         if (trafficHandler != null) {
             pipeline.addLast("global-traffic-shaping", trafficHandler);
         }

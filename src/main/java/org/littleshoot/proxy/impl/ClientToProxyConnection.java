@@ -231,13 +231,14 @@ public class ClientToProxyConnection extends ProxyConnection<HttpRequest> {
 
         // Set up our filters based on the original request. If the HttpFiltersSource returns null (meaning the request/response
         // should not be filtered), fall back to the default no-op filter source.
+        // 通过工厂生成httpfilters
         HttpFilters filterInstance = proxyServer.getFiltersSource().filterRequest(currentRequest, ctx);
         if (filterInstance != null) {
             currentFilters = filterInstance;
         } else {
             currentFilters = HttpFiltersAdapter.NOOP_FILTER;
         }
-
+        //filter过滤
         // Send the request through the clientToProxyRequest filter, and respond with the short-circuit response if required
         HttpResponse clientToProxyFilterResponse = currentFilters.clientToProxyRequest(httpRequest);
 
@@ -284,6 +285,7 @@ public class ClientToProxyConnection extends ProxyConnection<HttpRequest> {
                 : this.serverConnectionsByHostAndPort.get(serverHostAndPort);
 
         boolean newConnectionRequired = false;
+        //connect请求
         if (ProxyUtils.isCONNECT(httpRequest)) {
             LOG.debug(
                     "Not reusing existing ProxyToServerConnection because request is a CONNECT for: {}",
@@ -297,6 +299,7 @@ public class ClientToProxyConnection extends ProxyConnection<HttpRequest> {
 
         if (newConnectionRequired) {
             try {
+                //生成proxyToServerConnection
                 currentServerConnection = ProxyToServerConnection.create(
                         proxyServer,
                         this,
@@ -334,7 +337,7 @@ public class ClientToProxyConnection extends ProxyConnection<HttpRequest> {
         }
 
         modifyRequestHeadersToReflectProxying(httpRequest);
-
+        //filter过滤
         HttpResponse proxyToServerFilterResponse = currentFilters.proxyToServerRequest(httpRequest);
         if (proxyToServerFilterResponse != null) {
             LOG.debug("Responding to client with short-circuit response from filter: {}", proxyToServerFilterResponse);
@@ -548,7 +551,7 @@ public class ClientToProxyConnection extends ProxyConnection<HttpRequest> {
 
     /**
      * Called when {@link ProxyToServerConnection} starts its connection flow.
-     * 
+     *  server conn开始时停止client conn
      * @param serverConnection
      */
     protected void serverConnectionFlowStarted(
@@ -777,6 +780,7 @@ public class ClientToProxyConnection extends ProxyConnection<HttpRequest> {
      * @param pipeline
      */
     private void initChannelPipeline(ChannelPipeline pipeline) {
+        LOG.info("初始化clientToClient conn");
         LOG.debug("Configuring ChannelPipeline");
 
         pipeline.addLast("bytesReadMonitor", bytesReadMonitor);

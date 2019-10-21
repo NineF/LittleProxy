@@ -9,6 +9,7 @@ import java.net.InetSocketAddress;
  * built using {@link #start()}. Sensible defaults are available for all
  * parameters such that {@link #start()} could be called immediately if you
  * wish.
+ * proxyServer启动类
  */
 public interface HttpProxyServerBootstrap {
 

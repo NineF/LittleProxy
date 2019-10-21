@@ -95,11 +95,12 @@ public class HttpFilterTest {
                 .withPort(0)
                 .withFiltersSource(filtersSource)
                 .start();
-
+        System.out.println("proxy server启动");
         final InetSocketAddress isa = new InetSocketAddress("127.0.0.1", proxyServer.getListenAddress().getPort());
         while (true) {
             try (Socket sock = new Socket()) {
                 sock.connect(isa);
+                System.out.println("连接成功");
                 break;
             } catch (final IOException e) {
                 // Keep trying.
@@ -144,7 +145,7 @@ public class HttpFilterTest {
         final String url3 = "http://localhost:" + webServerPort + "/testing2";
         final String url4 = "http://localhost:" + webServerPort + "/testing3";
         final String url5 = "http://localhost:" + webServerPort + "/testing4";
-
+        //设置filter处理
         final HttpFiltersSource filtersSource = new HttpFiltersSourceAdapter() {
             public HttpFilters filterRequest(HttpRequest originalRequest) {
                 shouldFilterCalls.incrementAndGet();

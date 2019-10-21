@@ -319,6 +319,7 @@ abstract class ProxyConnection<I extends HttpObject> extends
 
         protected Future execute() {
             try {
+                //移除相应的handler
                 ChannelPipeline pipeline = ctx.pipeline();
                 if (pipeline.get("encoder") != null) {
                     pipeline.remove("encoder");
@@ -592,6 +593,7 @@ abstract class ProxyConnection<I extends HttpObject> extends
         try {
             this.ctx = ctx;
             this.channel = ctx.channel();
+            LOG.info("注册channel到proxy server");
             this.proxyServer.registerChannel(ctx.channel());
         } finally {
             super.channelRegistered(ctx);

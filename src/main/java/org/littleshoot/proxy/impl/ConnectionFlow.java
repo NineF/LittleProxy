@@ -7,9 +7,11 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
- * Coordinates the various steps involved in establishing a connection, such as
+ * Coordinates(坐标) the various steps involved(涉及到的) in establishing a connection, such as
  * establishing a socket connection, SSL handshaking, HTTP CONNECT request
  * processing, and so on.
+ *
+ * 建立连接的各种步骤，例如连接一个连接、ssl握手、http连接请求处理等
  */
 class ConnectionFlow {
     private Queue<ConnectionFlowStep> steps = new ConcurrentLinkedQueue<ConnectionFlowStep>();
@@ -78,8 +80,10 @@ class ConnectionFlow {
 
     /**
      * <p>
-     * Advances the flow. {@link #advance()} will be called until we're either
+     * Advances(推进) the flow. {@link #advance()} will be called until we're either
      * out of steps, or a step has failed.
+     *
+     * 推动flow执行，即执行flow中的下一个flow
      * </p>
      */
     void advance() {
@@ -97,7 +101,7 @@ class ConnectionFlow {
      * </p>
      * 
      * <ol>
-     * <li>Change the state of the associated {@link ProxyConnection} to the
+     * <li>Change the state of the associated {@link } to the
      * value of {@link ConnectionFlowStep#getState()}</li>
      * <li>Call {@link ConnectionFlowStep#execute()}</li>
      * <li>On completion of the {@link Future} returned by
@@ -107,16 +111,23 @@ class ConnectionFlow {
      * <li>If unsuccessful, we call {@link #fail()}, stopping the connection
      * flow</li>
      * </ol>
+     *
+     * 对于每一个step，会改变ProxyConnection的状态为step的状态
+     * 并且执行step的execute方法，判断其返回结果，如果执行成功，继续推进flow执行
+     * 失败则停止flow
      */
     private void processCurrentStep() {
         final ProxyConnection connection = currentStep.getConnection();
         final ProxyConnectionLogger LOG = connection.getLOG();
 
         LOG.debug("Processing connection flow step: {}", currentStep);
+        //修改connection状态
         connection.become(currentStep.getState());
+        //抑制最初的请求？
         suppressInitialRequest = suppressInitialRequest
                 || currentStep.shouldSuppressInitialRequest();
 
+        //是否在eventloop中执行
         if (currentStep.shouldExecuteOnEventLoop()) {
             connection.ctx.executor().submit(new Runnable() {
                 @Override
@@ -143,6 +154,7 @@ class ConnectionFlow {
                             io.netty.util.concurrent.Future<?> future)
                             throws Exception {
                         synchronized (connectLock) {
+                            //回调处理
                             if (future.isSuccess()) {
                                 LOG.debug("ConnectionFlowStep succeeded");
                                 currentStep

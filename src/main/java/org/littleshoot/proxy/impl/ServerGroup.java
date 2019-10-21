@@ -27,21 +27,25 @@ public class ServerGroup {
     /**
      * The default number of threads to accept incoming requests from clients. (Requests are serviced by worker threads,
      * not acceptor threads.)
+     * 默认的accept线程数
      */
     public static final int DEFAULT_INCOMING_ACCEPTOR_THREADS = 2;
 
     /**
      * The default number of threads to service incoming requests from clients.
+     * 默认的worker线程数（入）
      */
     public static final int DEFAULT_INCOMING_WORKER_THREADS = 8;
 
     /**
      * The default number of threads to service outgoing requests to servers.
+     * 默认的worker线程数（出）
      */
     public static final int DEFAULT_OUTGOING_WORKER_THREADS = 8;
 
     /**
      * Global counter for the {@link #serverGroupId}.
+     * 计数器
      */
     private static final AtomicInteger serverGroupCount = new AtomicInteger(0);
 
@@ -63,21 +67,25 @@ public class ServerGroup {
     /**
      * List of all servers registered to use this ServerGroup. Any access to this list should be synchronized using the
      * {@link #SERVER_REGISTRATION_LOCK}.
+     * 注册在此ServerGroup上的server集合
      */
     public final List<HttpProxyServer> registeredServers = new ArrayList<HttpProxyServer>(1);
 
     /**
      * A mapping of {@link TransportProtocol}s to their initialized {@link ProxyThreadPools}. Each transport uses a
      * different thread pool, since the initialization parameters are different.
+     * 不同的协议使用不同的线程池
      */
     private final EnumMap<TransportProtocol, ProxyThreadPools> protocolThreadPools = new EnumMap<TransportProtocol, ProxyThreadPools>(TransportProtocol.class);
 
     /**
      * A mapping of selector providers to transport protocols. Avoids special-casing each transport protocol during
      * transport protocol initialization.
+     * 传输协议和selector之间的对应关系
      */
     private static final EnumMap<TransportProtocol, SelectorProvider> TRANSPORT_PROTOCOL_SELECTOR_PROVIDERS = new EnumMap<TransportProtocol, SelectorProvider>(TransportProtocol.class);
     static {
+        //默认初始化TCP
         TRANSPORT_PROTOCOL_SELECTOR_PROVIDERS.put(TransportProtocol.TCP, SelectorProvider.provider());
 
         // allow the proxy to operate without UDT support. this allows clients that do not use UDT to exclude the barchart
@@ -114,6 +122,7 @@ public class ServerGroup {
 
     /**
      * Lock for initializing any transport protocols.
+     * 用于初始化协议对应的线程池
      */
     private final Object THREAD_POOL_INIT_LOCK = new Object();
 
@@ -132,6 +141,7 @@ public class ServerGroup {
         // if the thread pools have not been initialized for this protocol, initialize them
         if (protocolThreadPools.get(protocol) == null) {
             synchronized (THREAD_POOL_INIT_LOCK) {
+                //再次判断
                 if (protocolThreadPools.get(protocol) == null) {
                     log.debug("Initializing thread pools for {} with {} acceptor threads, {} incoming worker threads, and {} outgoing worker threads",
                             protocol, incomingAcceptorThreads, incomingWorkerThreads, outgoingWorkerThreads);
@@ -158,6 +168,7 @@ public class ServerGroup {
     /**
      * Lock controlling access to the {@link #registerProxyServer(HttpProxyServer)} and {@link #unregisterProxyServer(HttpProxyServer, boolean)}
      * methods.
+     * 注册和注销server时使用的锁
      */
     private final Object SERVER_REGISTRATION_LOCK = new Object();
 
@@ -179,6 +190,7 @@ public class ServerGroup {
      *
      * @param proxyServer proxy server instance to unregister
      * @param graceful when true, the server group shutdown (if necessary) will be graceful
+     *                 当此参数为true并且不存在注册的server时，优雅的关闭服务
      */
     public void unregisterProxyServer(HttpProxyServer proxyServer, boolean graceful) {
         synchronized (SERVER_REGISTRATION_LOCK) {
@@ -201,6 +213,7 @@ public class ServerGroup {
      * Shuts down all event loops owned by this server group.
      *
      * @param graceful when true, event loops will "gracefully" terminate, waiting for submitted tasks to finish
+     *                 为true时将等待提交的任务结束
      */
     private void shutdown(boolean graceful) {
         if (!stopped.compareAndSet(false, true)) {
@@ -250,6 +263,8 @@ public class ServerGroup {
      *
      * @param protocol transport protocol to retrieve the thread pool for
      * @return the client-to-proxy acceptor thread pool
+     *
+     * 客户端到代理的acceptor线程池
      */
     public EventLoopGroup getClientToProxyAcceptorPoolForTransport(TransportProtocol protocol) {
         return getThreadPoolsForProtocol(protocol).getClientToProxyAcceptorPool();
@@ -263,6 +278,7 @@ public class ServerGroup {
      *
      * @param protocol transport protocol to retrieve the thread pool for
      * @return the client-to-proxy worker thread pool
+     * 客户端到代理的worker线程池
      */
     public EventLoopGroup getClientToProxyWorkerPoolForTransport(TransportProtocol protocol) {
         return getThreadPoolsForProtocol(protocol).getClientToProxyWorkerPool();
@@ -276,6 +292,7 @@ public class ServerGroup {
      *
      * @param protocol transport protocol to retrieve the thread pool for
      * @return the proxy-to-server worker thread pool
+     * 代理到服务端的worker线程池
      */
     public EventLoopGroup getProxyToServerWorkerPoolForTransport(TransportProtocol protocol) {
         return getThreadPoolsForProtocol(protocol).getProxyToServerWorkerPool();

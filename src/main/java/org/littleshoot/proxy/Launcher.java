@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 import java.util.Arrays;
 
 /**
@@ -38,9 +39,8 @@ public class Launcher {
 
     /**
      * Starts the proxy from the command line.
-     * 
-     * @param args
-     *            Any command line arguments.
+     *
+     * @param args Any command line arguments.
      */
     public static void main(final String... args) {
         pollLog4JConfigurationFileIfAvailable();
@@ -53,7 +53,7 @@ public class Launcher {
         options.addOption(null, OPTION_HELP, false,
                 "Display command line help.");
         options.addOption(null, OPTION_MITM, false, "Run as man in the middle.");
-        
+
         final CommandLineParser parser = new PosixParser();
         final CommandLine cmd;
         try {
@@ -102,7 +102,7 @@ public class Launcher {
             LOG.info("Running as Man in the Middle");
             bootstrap.withManInTheMiddle(new SelfSignedMitmManager());
         }
-        
+
         if (cmd.hasOption(OPTION_DNSSEC)) {
             final String val = cmd.getOptionValue(OPTION_DNSSEC);
             if (ProxyUtils.isTrue(val)) {
@@ -118,12 +118,14 @@ public class Launcher {
             }
         }
 
+        bootstrap.withAllowRequestToOriginServer(true);
+
         System.out.println("About to start...");
         bootstrap.start();
     }
 
     private static void printHelp(final Options options,
-            final String errorMessage) {
+                                  final String errorMessage) {
         if (!StringUtils.isBlank(errorMessage)) {
             LOG.error(errorMessage);
             System.err.println(errorMessage);

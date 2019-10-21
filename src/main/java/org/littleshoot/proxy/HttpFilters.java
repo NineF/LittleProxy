@@ -18,6 +18,8 @@ import java.net.InetSocketAddress;
  * (request, response or chunk) and is allowed to modify it in place. Others
  * provide a notification of when specific operations happen (i.e. connection in
  * queue, DNS resolution, SSL handshaking and so forth).
+ * 1、修改请求、响应、分块
+ * 2、特殊操作发生通知
  * </p>
  * 
  * <p>
@@ -39,11 +41,13 @@ import java.net.InetSocketAddress;
  * receives more data than fits in the specified maximum bytes to buffer, the
  * proxy will stop processing the request and respond with a 502 Bad Gateway
  * error.
+ * 当大于指定的大小时，返回502
  * </p>
  * 
  * <p>
  * A new instance of {@link HttpFilters} is created for each request, so these
  * objects can be stateful.
+ * 每个请求都有一个新的实例，所以是有状态的
  * </p>
  * 
  * <p>
@@ -67,6 +71,8 @@ import java.net.InetSocketAddress;
  * <li>serverToProxyResponseReceived</li>
  * <li>proxyToClientResponse</li>
  * </ol>
+ *
+ * 过滤httpObject对象的接口
  */
 public interface HttpFilters {
     /**

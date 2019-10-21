@@ -173,7 +173,7 @@ public class ProxyUtils {
 
     /**
      * Parses the host and port an HTTP request is being sent to.
-     * 
+     * 解析出request中要请求的host和port
      * @param httpRequest
      *            The request.
      * @return The host and port string.
